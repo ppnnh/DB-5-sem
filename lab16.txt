@@ -1,0 +1,164 @@
+ ALTER SESSION SET nls_date_format='dd-mm-yyyy hh24:mi:ss';
+alter session set PLSQL_OPTIMIZE_LEVEL = 1;
+--1
+-- drop table T_RANGE;
+create table T_RANGE(
+  id number,
+  ttime date)
+
+partition by range(id)(
+  partition tr1 values less than (100),
+  partition tr2 values less than (200),
+  partition tr3 values less than (300),
+  partition trmax values less than (maxvalue)
+);
+
+insert into T_RANGE(id, ttime) values(1,'01-04-2021');
+insert into T_RANGE(id, ttime) values(150,'01-04-2020');
+insert into T_RANGE(id, ttime) values(250,'01-04-2019');
+insert into T_RANGE(id, ttime) values(350,'01-04-2018');
+insert into T_RANGE(id, ttime) values(29,'01-08-2010');
+commit;
+
+select * from T_RANGE partition(tr1);
+select * from T_RANGE partition(tr2);
+select * from T_RANGE partition(tr3);
+select * from T_RANGE partition(trmax);
+
+select * from user_tab_partitions where TABLE_NAME = 'T_RANGE';
+
+--2
+-- drop table  T_INTERVAL;
+create table T_INTERVAL(
+  id number,
+  ttime date)  
+  partition by range(ttime) interval (numtoyminterval(1,'month'))(
+  partition ti1 values less than  (to_date ('1-4-2009', 'dd-mm-yyyy')),
+  partition ti2 values less than  (to_date ('1-8-2015', 'dd-mm-yyyy')),
+  partition ti3 values less than  (to_date ('1-12-2021', 'dd-mm-yyyy')));
+
+insert into T_INTERVAL(id, ttime) values(50,  '01-04-2021');
+insert into T_INTERVAL(id, ttime) values(105, '01-04-2019');
+insert into T_INTERVAL(id, ttime) values(105, '01-04-2017');
+insert into T_INTERVAL(id, ttime) values(205, '01-04-2015');
+insert into T_INTERVAL(id, ttime) values(305, '01-04-2013');
+insert into T_INTERVAL(id, ttime) values(405, '01-04-2011');
+insert into T_INTERVAL(id, ttime) values(505, '01-04-2009');
+insert into T_INTERVAL(id, ttime) values(1005,'01-04-2007');
+commit;
+
+select * from T_INTERVAL partition(ti1);
+select * from T_INTERVAL partition(ti2);
+select * from T_INTERVAL partition(ti3);
+
+select * from T_INTERVAL;
+
+select * from user_tab_partitions where TABLE_NAME = 'T_INTERVAL';
+
+--3
+--drop table T_HASH;
+create table T_HASH(
+  str varchar2 (50),
+  id number)
+partition by hash (str)(
+   partition th1,
+   partition th2,
+   partition th3,
+   partition th4);
+
+insert into T_HASH (str,id) values('string1', 1);
+insert into T_HASH (str,id) values('string2', 2);
+insert into T_HASH (str,id) values('string3', 3);
+insert into T_HASH (str,id) values('string4', 4);
+insert into T_HASH (str,id) values('string5', 5);
+insert into T_HASH (str,id) values('string6', 6);
+insert into T_HASH (str,id) values('string7', 7);
+commit;
+
+select * from T_HASH partition(th1);
+select * from T_HASH partition(th2);
+select * from T_HASH partition(th3);
+select * from T_HASH partition(th4);
+
+select * from user_tab_partitions where TABLE_NAME = 'T_HASH';
+
+--4
+--drop table T_LIST;
+create table T_LIST(
+  x char(3))
+partition by list (x)
+(
+  partition tl1 values ('a', 'b', 'c'),
+  partition tl2 values ('d', 'e', 'f'),
+  partition tl3 values ('g', 'h', 'i'),
+  partition tl4 values (default)
+);
+
+insert into  T_LIST(x) values('a');
+insert into  T_LIST(x) values('b');
+insert into  T_LIST(x) values('c');
+insert into  T_LIST(x) values('d');
+insert into  T_LIST(x) values('e');
+insert into  T_LIST(x) values('f');
+insert into  T_LIST(x) values('g');
+insert into  T_LIST(x) values('x');
+insert into  T_LIST(x) values('y');
+commit;
+
+select * from T_LIST partition (tl1);
+select * from T_LIST partition (tl2);
+select * from T_LIST partition (tl3);
+select * from T_LIST partition (tl4);
+
+--6
+alter table T_RANGE enable row movement;
+
+update T_RANGE partition(tr1) set id=260 where id=29;
+commit;
+
+select * from T_RANGE partition(tr1);
+select * from T_RANGE partition(tr3);
+----------------------
+alter table T_INTERVAL enable row movement;
+
+update T_INTERVAL partition(ti1) set ttime='12-09-2021' where ttime='01-04-2007';
+commit;
+
+select * from T_INTERVAL partition(ti1);
+select * from T_INTERVAL partition(ti3);
+----------------------
+alter table T_HASH enable row movement;
+
+update T_HASH partition(th4) set str='string8' where str='string4';
+commit;
+
+select * from T_HASH partition(th4);
+select * from T_HASH partition(th1);
+----------------------
+alter table T_LIST enable row movement;
+
+update T_LIST partition(tl1) set x='z' where x = 'b';
+commit;
+
+select * from T_LIST partition(tl1);
+select * from T_LIST partition(tl4);
+
+--7
+alter table T_RANGE merge partitions tr1,tr2 into partition tr5;
+commit;
+select * from T_RANGE partition(tr5);
+
+--8
+alter table T_INTERVAL split partition ti2 at (to_date ('1-8-2014', 'dd-mm-yyyy'))
+  into (partition ti4, partition ti5);
+
+select * from T_INTERVAL partition (ti4);
+select * from T_INTERVAL partition (ti5);
+
+--9
+--drop table T_LIST1;
+create table T_LIST1(x char(3));
+alter table T_LIST exchange partition  tl2 with table T_LIST1 without validation;
+
+select * from T_LIST partition (tl2);
+select * from T_LIST1;

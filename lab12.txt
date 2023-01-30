@@ -1,0 +1,188 @@
+--1 DONE
+alter table TEACHER add BIRTHDAY date;
+alter table TEACHER add SALARY number(6,2);
+
+-- into data
+DECLARE
+    cursor c_teacher is select TEACHER, BIRTHDAY, SALARY from TEACHER;
+    l_data TEACHER.BIRTHDAY % type;
+    l_salary TEACHER.SALARY % type;
+    BEGIN
+      SYS.DBMS_OUTPUT.ENABLE (buffer_size => null);
+
+
+    for row_teacher in c_teacher
+    loop
+      l_data := TO_DATE(TRUNC(DBMS_RANDOM.VALUE(TO_CHAR(DATE '1960-01-01','J'),TO_CHAR(DATE '2000-12-31','J'))),'J');
+          SYS.DBMS_OUTPUT.PUT_LINE(l_data);
+
+      l_salary := Round(DBMS_RANDOM.Value(20000, 200000)) / 100;
+         SYS.DBMS_OUTPUT.PUT_LINE(l_salary);
+
+    update TEACHER set TEACHER.BIRTHDAY = l_data, TEACHER.SALARY = l_salary where TEACHER.TEACHER = row_teacher.TEACHER;
+      end loop;
+END;
+
+--rollback
+--commit
+--2
+DECLARE
+    LastName   TEACHER.TEACHER_NAME % type;
+    FirstName  TEACHER.TEACHER_NAME % type;
+    Patronymic TEACHER.TEACHER_NAME % type;
+
+    pos_name INT:= 0;
+    pos_patronymic INT:= 0;
+    CURSOR c_teacher IS SELECT TEACHER_NAME FROM TEACHER;
+BEGIN
+        SYS.DBMS_OUTPUT.ENABLE (buffer_size => null);
+        for l_teachername in c_teacher
+        loop
+            pos_name := INSTR(l_teachername.TEACHER_NAME, ' ');
+            pos_patronymic := INSTR(l_teachername.TEACHER_NAME, ' ', pos_name + 1);
+
+            LastName := SUBSTR(l_teachername.TEACHER_NAME, 1, pos_name);
+
+            FirstName := SUBSTR(l_teachername.TEACHER_NAME, pos_name, pos_patronymic-1);
+            FirstName := SUBSTR(FirstName, 2, 1);
+
+            Patronymic := SUBSTR(l_teachername.TEACHER_NAME, pos_patronymic);
+            Patronymic := SUBSTR(Patronymic, 2, 1);
+
+            SYS.DBMS_OUTPUT.PUT_LINE(LastName||' '||FirstName||'.'||Patronymic||'.');
+
+        END LOOP;
+END;
+
+--3                                              day of week(1-7) 1-sunday
+ select * from teacher where TO_CHAR((birthday), 'd') = 2;
+ 
+--4
+create view V_BIRTHDAY_ON_NEXT_MONTH as select * from TEACHER where to_char(BIRTHDAY,'Month') = to_char(sysdate + 30,'Month');
+
+select * from V_BIRTHDAY_ON_NEXT_MONTH;
+--select * from TEACHER
+-- drop view V_BIRTHDAY_ON_NEXT_MONTH; 
+
+--5
+create view COUNT_BIRTHDAY_TEACHER as select
+    sum(case when extract(month from BIRTHDAY) = 1  then 1 else 0 end) as "January",
+    sum(case when extract(month from BIRTHDAY) = 2  then 1 else 0 END) as "February ",
+    sum(case when extract(month from BIRTHDAY) = 3  then 1 else 0 END) as "March ",
+    sum(case when extract(month from BIRTHDAY) = 4  then 1 else 0 END) as "April ",
+    sum(case when extract(month from BIRTHDAY) = 5  then 1 else 0 END) as "May",
+    sum(case when extract(month from BIRTHDAY) = 6  then 1 else 0 END) as "June",
+    sum(case when extract(month from BIRTHDAY) = 7  then 1 else 0 END) as "Jule",
+    sum(case when extract(month from BIRTHDAY) = 8  then 1 else 0 END) as "August",
+    sum(case when extract(month from BIRTHDAY) = 9  then 1 else 0 END) as "September",
+    sum(case when extract(month from BIRTHDAY) = 10 then 1 else 0 END) as "October",
+    sum(case when extract(month from BIRTHDAY) = 11 then 1 else 0 END) as "November",
+    sum(case when extract(month from BIRTHDAY) = 12 then 1 else 0 END) as "December"
+from TEACHER;
+
+select * from COUNT_BIRTHDAY_TEACHER;
+-- drop view COUNT_BIRTHDAY_TEACHER;
+
+--6
+DECLARE
+    YEAR_BIRTHDAY int;
+    cursor c_teacher is select * from TEACHER;
+    row_teacher TEACHER % rowtype;
+BEGIN
+    SYS.DBMS_OUTPUT.ENABLE (buffer_size => null);
+    for row_teacher in c_teacher
+        loop
+            YEAR_BIRTHDAY := (to_number(to_char(sysdate, 'YYYY')) + 1) - to_number(to_char(row_teacher.BIRTHDAY, 'YYYY'));
+
+            if (mod(YEAR_BIRTHDAY,10) = 0)
+                then
+                    SYS.DBMS_OUTPUT.PUT_LINE(row_teacher.TEACHER_NAME|| ' '|| row_teacher.BIRTHDAY|| ' years: '|| YEAR_BIRTHDAY);
+            end if;
+        end loop;
+END;
+
+select * from TEACHER;
+select * from PULPIT;
+select * from FACULTY;
+--7
+DECLARE
+    SUM_S INT := 0;
+    NUMBER_IN_FACULTY INT := 0;
+    cursor c_teacher is select * from TEACHER;
+    cursor c_pulpit is select * from PULPIT;
+    cursor c_faculty is select * from FACULTY;
+BEGIN
+    SYS.DBMS_OUTPUT.ENABLE (buffer_size => null);
+    SYS.DBMS_OUTPUT.PUT_LINE(' ');
+
+    for row_pulpit in c_pulpit
+        loop
+            for row_teacher in c_teacher
+            loop
+                if row_teacher.PULPIT = row_pulpit.PULPIT
+                        then
+                        SUM_S := SUM_S + row_teacher.SALARY;
+                        NUMBER_IN_FACULTY := NUMBER_IN_FACULTY + 1;
+                end if;
+                end loop;
+
+            SYS.DBMS_OUTPUT.PUT_LINE(row_pulpit.PULPIT_NAME ||' '||'PULPIT AVERAGE SALARY = '|| floor(SUM_S/NUMBER_IN_FACULTY));
+            NUMBER_IN_FACULTY := 0;
+            SUM_S := 0;
+
+        end loop;
+
+    SYS.DBMS_OUTPUT.PUT_LINE(' ');
+    for row_faculty in c_faculty
+        loop
+            for row_pulpit in c_pulpit
+                loop
+                    if row_faculty.FACULTY = row_pulpit.FACULTY
+                        then
+                            for row_teacher in c_teacher
+                                loop
+                                    if row_teacher.PULPIT = row_pulpit.PULPIT
+                                        then
+                                            SUM_S := SUM_S + row_teacher.SALARY;
+                                            NUMBER_IN_FACULTY := NUMBER_IN_FACULTY + 1;
+                                    end if;
+                            end loop;
+
+                    end if;
+            end loop;
+        SYS.DBMS_OUTPUT.PUT_LINE(row_faculty.FACULTY_NAME ||' '||'FACULTY AVERAGE SALARY = '|| floor(SUM_S/NUMBER_IN_FACULTY));
+        NUMBER_IN_FACULTY := 0;
+        SUM_S := 0;
+    end loop;
+
+    SYS.DBMS_OUTPUT.PUT_LINE(' ');
+    for row_teacher in c_teacher
+        loop
+            SUM_S := SUM_S +row_teacher.SALARY;
+            NUMBER_IN_FACULTY := NUMBER_IN_FACULTY + 1;
+    end loop;
+
+    SYS.DBMS_OUTPUT.PUT_LINE('ALL FACULTY AVERAGE SALARY = '|| floor(SUM_S/NUMBER_IN_FACULTY));
+END;
+
+--8
+   DECLARE
+        type ADDRESS is record(
+          CITY nvarchar2(20),
+          COUNTRY nvarchar2(20));
+          
+        type PROFESSORS is record(
+          NAME teacher.teacher_name%type,
+          PULPIT teacher.pulpit%type,
+          HADDRESS ADDRESS);
+          
+      PERSON1 PROFESSORS;
+      PERSON2 PROFESSORS;
+      
+    BEGIN
+      select TEACHER_NAME, PULPIT into PERSON1.NAME, PERSON1.PULPIT from TEACHER where TEACHER ='ÊËÑÍÂ';
+      PERSON1.HADDRESS.CITY := 'MINSK';
+      PERSON1.HADDRESS.COUNTRY := 'BELARUS';
+      PERSON2 := PERSON1;
+      dbms_output.put_line( PERSON2.NAME||' '|| PERSON2.PULPIT||'  '|| PERSON2.HADDRESS.CITY||', '||  PERSON2.HADDRESS.COUNTRY);
+    END;

@@ -1,0 +1,20 @@
+create table load3(
+  t1 NUMBER,
+  t2 NVARCHAR2(10),
+  t3 DATE
+);
+
+select * from load3;
+delete load3;
+commit;
+
+--sqlldr system/Zalesse2015 CONTROL=control.ctl
+
+-- set heading off;
+
+-- set feedback off;
+
+-- spool c:\18\18lab.txt
+-- select * from load3;
+
+-- spool off

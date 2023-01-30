@@ -1,0 +1,219 @@
+--drop table company;
+--1
+create table company(
+	id number primary key,
+	company nvarchar2(50),
+  p nvarchar2(50),
+  CONSTRAINT constraint_company UNIQUE (company));
+  
+--2
+insert into company values(1, 'Company 1', 'c1');
+insert into company values(2, 'Company 2', 'c2');
+insert into company values(3, 'Company 3', 'c3');
+insert into company values(4, 'Company 4', 'c4');
+insert into company values(5, 'Company 5', 'c5');
+insert into company values(6, 'Company 6', 'c6');
+insert into company values(7, 'Company 7', 'c7');
+insert into company values(8, 'Company 8', 'c8');
+insert into company values(9, 'Company 9', 'c9');
+insert into company values(10, 'Company 10', 'c10');
+
+select * from company;
+
+--3
+--drop trigger before_trigger_3;
+
+create or replace trigger before_trigger_3
+before insert or update or delete on company
+begin
+  if inserting then
+    dbms_output.put_line('before_trigger_3 INSERT');
+  elsif updating then
+    dbms_output.put_line('before_trigger_3 UPDATE');
+  elsif deleting then
+    dbms_output.put_line('before_trigger_3 DELETE');
+  end if;
+end;
+
+insert into company values(11, 'Company 11', 'c11');
+update company set organization='Company TT' where id =1;
+delete company where id = 2;
+
+--5
+--drop trigger before_trigger_row_5;
+
+create or replace trigger before_trigger_row_5
+before insert or update or delete on company
+for each row
+begin
+  if inserting then
+    dbms_output.put_line('before_trigger_row_5 INSERT');
+  elsif updating then
+    dbms_output.put_line('before_trigger_row_5 UPDATE');
+  elsif deleting then
+    dbms_output.put_line('before_trigger_row_5 DELETE');
+  end if;
+end;
+
+update company set p='Cc';
+delete company;
+
+--7
+--drop trigger after_trigger_insert;
+--drop trigger after_trigger_update;
+--drop trigger after_trigger_delete;
+
+create or replace trigger after_trigger_insert
+after insert on company
+  begin
+    dbms_output.put_line('after_trigger_insert WORKED');
+  end;
+
+insert into company values (12, 'Company 12', 'c12');
+  
+create or replace trigger after_trigger_update
+after update on company
+  begin
+    dbms_output.put_line('after_trigger_update WORKED');
+  end;
+  
+update company set company='Company TT' where id =8;
+  
+create or replace trigger after_trigger_delete
+after delete on company
+  begin
+    dbms_output.put_line('after_trigger_delete WORKED');
+  end;
+  
+delete company where id = 12;
+
+--8
+--drop trigger after_trigger_insert_row;
+--drop trigger after_trigger_update_row;
+--drop trigger after_trigger_delete_row;
+
+create or replace trigger after_trigger_insert_row
+after insert on company
+for each row
+  begin
+    dbms_output.put_line('after_trigger_insert_row WORKED');
+  end;
+  
+create or replace trigger after_trigger_update_row
+after update on company
+for each row
+  begin
+    dbms_output.put_line('after_trigger_update_row WORKED');
+  end;
+
+update company set p='C1';
+  
+create or replace trigger after_trigger_delete_row
+after delete on company
+for each row
+  begin
+    dbms_output.put_line('after_trigger_delete_row WORKED');
+  end;
+  
+delete company;
+
+--9
+--drop table AUDIT1;
+
+create table AUDIT1(
+  OperationDate date,
+  OperationType nvarchar2(50),
+  TriggerName nvarchar2(50),
+  Data_change nvarchar2(100)
+);
+
+--10
+--drop trigger AUDIT1_before_trigger;
+--drop trigger AUDIT1_after_trigger;
+
+CREATE OR REPLACE TRIGGER AUDIT1_before_trigger
+    before insert or update  or delete on company
+    BEGIN
+        if inserting then
+            dbms_output.put_line('AUDIT1_before_trigger');
+            INSERT INTO AUDIT1(OperationDate, OperationType, TriggerName, Data_change)
+            SELECT sysdate,'INSERT', 'AUDIT1_before_trigger',concat(company.company, company.p)
+            FROM company;
+        elsif updating then
+            dbms_output.put_line('AUDIT1_before_trigger');
+            INSERT INTO AUDIT1(OperationDate, OperationType, TriggerName, Data_change)
+            SELECT sysdate,'UPDATE', 'AUDIT1_before_trigger',concat(company.company, company.p)
+            FROM company;
+        elsif deleting then
+            dbms_output.put_line('AUDIT1_before_trigger');
+            INSERT INTO AUDIT1(OperationDate, OperationType, TriggerName, Data_change)
+            SELECT sysdate,'DELETE', 'AUDIT1_before_trigger',concat(company, p)
+            FROM company;
+        END if;
+    END;
+    -------------------------------
+CREATE OR REPLACE TRIGGER AUDIT1_after_trigger
+    after insert or update  or delete on company
+    BEGIN
+        if inserting then
+            dbms_output.put_line('AUDIT1_after_trigger');
+            INSERT INTO AUDIT1(OperationDate, OperationType, TriggerName, Data_change)
+            SELECT sysdate,'INSERT', 'AUDIT1_after_trigger',concat(company.company, company.p)
+            FROM company;
+        elsif updating then
+            dbms_output.put_line('AUDIT1_after_trigger');
+            INSERT INTO AUDIT1(OperationDate, OperationType, TriggerName, Data_change)
+            SELECT sysdate,'UPDATE', 'AUDIT1_after_trigger',concat(company.company, company.p)
+            FROM company;
+        elsif deleting then
+            dbms_output.put_line('AUDIT1_after_trigger');
+            INSERT INTO AUDIT1(OperationDate, OperationType, TriggerName, Data_change)
+            SELECT sysdate,'DELETE', 'AUDIT1_after_trigger',concat(company, p)
+            FROM company;
+        END if;
+    END;
+--
+SELECT * from company;
+SELECT * from AUDIT1;
+update company set p='CT';
+DELETE company;
+delete AUDIT1;
+
+--11
+insert into company values (10, 'Company 12', 'c12');
+
+--12
+create or REPLACE trigger task12
+before drop on database
+begin
+	raise_application_error(-20001, 'No dropping allowed');
+end;
+
+DROP TABLE company;
+
+--drop trigger task12;
+
+--13
+drop table AUDIT1;
+
+select trigger_name, table_name, status from user_triggers;
+
+alter trigger task12 disable;
+
+--14
+--drop view view14;
+
+create view view14 as SELECT * FROM company;
+
+--drop trigger task14;
+
+create or REPLACE trigger task14 instead of insert on view14
+for each row
+begin
+	insert into company values(16, 'Company 16', 'c16');
+end;
+    
+insert into view14 values(17, 'Company 17', 'c17');
+commit;
+select * from company;
+select * from view14;

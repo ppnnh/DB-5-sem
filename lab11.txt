@@ -1,0 +1,496 @@
+set serveroutput on;
+----IMPLICIT CURSORS
+--1
+DECLARE
+    l_teacher TEACHER % rowtype;
+BEGIN
+    select * into l_teacher from TEACHER where TEACHER = 'ÀÊÍÂ×';
+    SYS.DBMS_OUTPUT.ENABLE (buffer_size => null);
+    SYS.DBMS_OUTPUT.PUT_LINE (l_teacher.TEACHER ||' | '|| l_teacher.TEACHER_NAME ||' | '|| l_teacher.PULPIT);
+END;
+
+--2
+DECLARE
+    l_teacher TEACHER % rowtype;
+BEGIN
+    select * into l_teacher from TEACHER where TEACHER = 'ÁÇÁÐÄÂl';
+    SYS.DBMS_OUTPUT.ENABLE (buffer_size => null);
+    SYS.DBMS_OUTPUT.PUT_LINE (l_teacher.TEACHER ||' | '|| l_teacher.TEACHER_NAME ||' | '|| l_teacher.PULPIT);
+
+EXCEPTION
+    when others
+        then
+            SYS.DBMS_OUTPUT.PUT_LINE('code error: ' || sqlcode || 'msg oracle: ' || sqlerrm);
+END;
+
+--3
+DECLARE
+    l_teacher TEACHER % rowtype;
+BEGIN
+    SYS.DBMS_OUTPUT.ENABLE (buffer_size => null);
+    select * into l_teacher from TEACHER;
+    SYS.DBMS_OUTPUT.PUT_LINE (l_teacher.TEACHER ||' | '|| l_teacher.TEACHER_NAME ||' | '|| l_teacher.PULPIT );
+
+EXCEPTION
+    when TOO_MANY_ROWS then SYS.DBMS_OUTPUT.PUT_LINE('TOO_MANY_ROWS');
+    when others then SYS.DBMS_OUTPUT.PUT_LINE('code error: ' || sqlcode || 'msg oracle: ' || sqlerrm);
+END;
+
+--4
+DECLARE
+    l_teacher TEACHER % rowtype;
+    isFound boolean := false;
+    isOpen boolean := false;
+    counter integer := 0;
+BEGIN
+    SYS.DBMS_OUTPUT.ENABLE (buffer_size => null);
+    select * into l_teacher from TEACHER where TEACHER = 'ÀÊÍÂ×i';
+    isFound := sql % found;
+    isOpen  := sql % isopen;
+    counter := sql % rowcount;
+
+    ---------- IS FOUND ROW ----------
+    if isFound 
+        then 
+           SYS.DBMS_OUTPUT.PUT_LINE('found row');
+    else
+      SYS.DBMS_OUTPUT.PUT_LINE('no found row');
+    end if;
+
+    ---------- IS OPEN ----------
+    if isFound
+        then
+            SYS.DBMS_OUTPUT.PUT_LINE('cursor open');
+    else
+            SYS.DBMS_OUTPUT.PUT_LINE('cursor not open');
+    end if;
+
+    SYS.DBMS_OUTPUT.PUT_LINE('found rows: ' || counter);
+
+    SYS.DBMS_OUTPUT.PUT_LINE
+        (l_teacher.TEACHER ||' | '||
+            l_teacher.TEACHER_NAME ||' | '||
+            l_teacher.PULPIT
+        );
+EXCEPTION
+
+    when NO_DATA_FOUND
+        then
+            SYS.DBMS_OUTPUT.PUT_LINE('NO_DATA_FOUND');
+    when others
+        then
+            SYS.DBMS_OUTPUT.PUT_LINE('code error: ' || sqlcode || ' msg oracle: ' || sqlerrm);
+END;
+
+--5 
+--select * from TEACHER where TEACHER = 'ÊÁË';
+--commit;
+--rollback;
+BEGIN
+    SYS.DBMS_OUTPUT.ENABLE (buffer_size => null);
+    update  TEACHER set TEACHER_NAME = 'Zoya Lott' where TEACHER = 'ÊÁË';
+
+EXCEPTION
+    when others
+        then
+            SYS.DBMS_OUTPUT.PUT_LINE('code error: ' || sqlcode || ' msg oracle: ' || sqlerrm);
+END;
+
+select TEACHER from TEACHER;
+
+--6 
+-- commit;
+--rollback;
+BEGIN
+    SYS.DBMS_OUTPUT.ENABLE (buffer_size => null);
+
+    update  TEACHER set TEACHER = 'Ð–Ð Ð¡ÐšÐœÐ›Ð?Ð”Ð?Ð«Ð«' where TEACHER = 'ÑÌËÂ';
+
+EXCEPTION
+    when others
+        then
+            SYS.DBMS_OUTPUT.PUT_LINE('code error: ' || sqlcode || ' msg oracle: ' || sqlerrm);
+END;
+
+--7
+--select * from TEACHER where TEACHER = 'ÞÄÍÊ';
+--commit;
+--rollback;
+
+BEGIN
+    SYS.DBMS_OUTPUT.ENABLE (buffer_size => null);
+
+    insert into TEACHER (TEACHER, TEACHER_NAME, PULPIT)
+        values ('ÞÄÍÊ', 'Andru Collman', 'ÈÑèÒ');
+
+EXCEPTION
+    when others
+        then
+            SYS.DBMS_OUTPUT.PUT_LINE('code error: ' || sqlcode || ' msg oracle: ' || sqlerrm);
+END;
+
+--8
+--commit;
+-- rollback;
+select * from TEACHER
+BEGIN
+    SYS.DBMS_OUTPUT.ENABLE (buffer_size => null);
+
+    insert into TEACHER (TEACHER, TEACHER_NAME, PULPIT) 
+        values ('ÃÐÌÍ1', 'Ð”Ð¾Ð±Ñ€Ð¾Ð±Ð°Ð±Ð° Ð’Ð°Ð»ÐµÑ€Ð¸Ñ? Ð?Ð¸ÐºÐ¾Ð»Ð°ÐµÐ²Ð½Ð°', 'ÐžÐ¥Ð¢');        -- incorrect pulpit
+
+EXCEPTION
+    when others
+        then
+            SYS.DBMS_OUTPUT.PUT_LINE('code error: ' || sqlcode || ' msg oracle: ' || sqlerrm);
+END;
+
+--9
+select * from TEACHER where TEACHER = 'ÄÄÊ';
+-- commit;
+-- rollback;
+
+BEGIN
+    SYS.DBMS_OUTPUT.ENABLE (buffer_size => null);
+
+    delete from TEACHER where TEACHER = 'ÄÄÊ';
+
+EXCEPTION
+    when others
+        then
+            SYS.DBMS_OUTPUT.PUT_LINE('code error: ' || sqlcode || ' msg oracle: ' || sqlerrm);
+END;
+
+--10
+--commit;
+-- rollback;
+BEGIN
+    SYS.DBMS_OUTPUT.ENABLE (buffer_size => null);
+
+    delete from TEACHER where TEACHER = 0;
+
+EXCEPTION
+    when others
+        then
+            SYS.DBMS_OUTPUT.PUT_LINE('code error: ' || sqlcode || ' msg oracle: ' || sqlerrm);
+END;
+
+---- EXPLICIT CURSORS
+--11
+DECLARE
+    cursor c_teacher is select TEACHER, TEACHER_NAME, PULPIT from TEACHER;
+    l_teacher       TEACHER.TEACHER % type;
+    l_teacher_name  TEACHER.TEACHER_NAME % type;
+    l_pulpit        TEACHER.PULPIT % type;
+BEGIN
+    open c_teacher;     -- open cursor
+    SYS.DBMS_OUTPUT.PUT_LINE('rows read: ' || c_teacher % rowcount);
+
+    loop
+        fetch c_teacher into l_teacher, l_teacher_name, l_pulpit;
+            exit when c_teacher % notfound;
+
+        SYS.DBMS_OUTPUT.PUT_LINE(l_teacher ||' '|| l_teacher_name ||' '|| l_pulpit);
+    end loop;
+
+    SYS.DBMS_OUTPUT.PUT_LINE('rows read: ' || c_teacher % rowcount);
+    close c_teacher;
+EXCEPTION
+    when others
+        then
+            SYS.DBMS_OUTPUT.PUT_LINE('code error: ' || sqlcode || ' msg oracle: ' || sqlerrm);
+END;
+
+--12
+DECLARE
+        cursor cur is select subject, subject_name, pulpit from SUBJECT;
+        rec subject%rowtype;
+    BEGIN
+        open cur;
+        dbms_output.put_line('rowcount = '||cur%rowcount);
+        fetch cur into rec;
+        while cur%found
+            loop
+            dbms_output.put_line(cur%rowcount||' '||rec.subject||' '||
+                                 rec.subject_name||' '||rec.pulpit);
+            fetch cur into rec;
+            end loop;
+        dbms_output.put_line('rowcount = '||cur%rowcount);
+        close cur;
+    END;
+    
+--13
+declare
+    cursor curs_pulpit is select PULPIT.PULPIT, TEACHER_NAME,  PULPIT_NAME,  FACULTY from pulpit 
+    join teacher on  pulpit.pulpit = teacher.pulpit;
+    rec_pulpit curs_pulpit%rowtype;
+begin
+    for rec_pulpit in curs_pulpit
+    loop 
+        dbms_output.put_line(curs_pulpit%rowcount||'. '
+        || rec_pulpit.PULPIT||'    '
+        || rec_pulpit.TEACHER_NAME||'    '
+        || rec_pulpit.PULPIT_NAME||'    '
+        || rec_pulpit.FACULTY);
+    end loop;
+EXCEPTION   WHEN OTHERS THEN
+  dbms_output.put_line('Code: ' || SQLCODE || ' Error: ' || SQLERRM);
+END;
+
+--14
+DECLARE
+
+    cursor c_auditorium (min AUDITORIUM.AUDITORIUM % type, max AUDITORIUM.AUDITORIUM % type)
+        is
+            select * from AUDITORIUM
+                where AUDITORIUM_CAPACITY >= min and  AUDITORIUM_CAPACITY <= max;
+    row_auditorium c_auditorium % rowtype;
+
+BEGIN
+    SYS.DBMS_OUTPUT.ENABLE (buffer_size => null);
+    SYS.DBMS_OUTPUT.PUT_LINE('capacity 0 - 20');
+    for row_auditorium in c_auditorium(0,20)
+    loop
+        SYS.DBMS_OUTPUT.PUT_LINE(
+            row_auditorium.AUDITORIUM ||' '||
+            row_auditorium.AUDITORIUM_NAME ||' '||
+            row_auditorium.AUDITORIUM_CAPACITY
+            );
+    end loop;
+
+    SYS.DBMS_OUTPUT.PUT_LINE('-----------------------------------');
+    SYS.DBMS_OUTPUT.PUT_LINE('capacity 21 - 30');
+    open c_auditorium(21,30);
+    fetch c_auditorium into row_auditorium;
+
+    while (c_auditorium % found)
+    loop
+        SYS.DBMS_OUTPUT.PUT_LINE(
+            row_auditorium.AUDITORIUM ||' '||
+            row_auditorium.AUDITORIUM_NAME ||' '||
+            row_auditorium.AUDITORIUM_CAPACITY
+            );
+        fetch c_auditorium into row_auditorium;
+    end loop;
+    close c_auditorium;
+
+    SYS.DBMS_OUTPUT.PUT_LINE('-----------------------------------');
+    SYS.DBMS_OUTPUT.PUT_LINE('capacity 31 - 60');
+
+    open c_auditorium(31,60);
+
+    loop
+        fetch c_auditorium into row_auditorium;
+        exit when c_auditorium % notfound;
+
+        SYS.DBMS_OUTPUT.PUT_LINE(
+            row_auditorium.AUDITORIUM ||' '||
+            row_auditorium.AUDITORIUM_NAME ||' '||
+            row_auditorium.AUDITORIUM_CAPACITY
+            );
+    end loop;
+    close c_auditorium;
+
+    SYS.DBMS_OUTPUT.PUT_LINE('-----------------------------------');
+    SYS.DBMS_OUTPUT.PUT_LINE('capacity 61 - 80');
+
+    for row_auditorium in c_auditorium(61,80)
+    loop
+        SYS.DBMS_OUTPUT.PUT_LINE(
+            row_auditorium.AUDITORIUM ||' '||
+            row_auditorium.AUDITORIUM_NAME ||' '||
+            row_auditorium.AUDITORIUM_CAPACITY
+            );
+    end loop;
+
+    SYS.DBMS_OUTPUT.PUT_LINE('-----------------------------------');
+    SYS.DBMS_OUTPUT.PUT_LINE('capacity 81 - ... ');
+
+    for row_auditorium in c_auditorium(81,9999)
+    loop
+        SYS.DBMS_OUTPUT.PUT_LINE(
+            row_auditorium.AUDITORIUM ||' '||
+            row_auditorium.AUDITORIUM_NAME ||' '||
+            row_auditorium.AUDITORIUM_CAPACITY
+            );
+    end loop;
+EXCEPTION
+    when others
+        then
+            SYS.DBMS_OUTPUT.PUT_LINE('code error: ' || sqlcode || ' msg oracle: ' || sqlerrm);
+END;
+
+--15
+DECLARE
+     type auditorium_cursor_type is ref cursor
+         return AUDITORIUM % rowtype;
+     c_auditorium  auditorium_cursor_type;
+     row_auditorium c_auditorium % rowtype;
+BEGIN
+    SYS.DBMS_OUTPUT.ENABLE (buffer_size => null);
+    open c_auditorium for select * from AUDITORIUM;
+
+    fetch c_auditorium into row_auditorium;
+
+    while (c_auditorium % found)
+    loop
+        SYS.DBMS_OUTPUT.PUT_LINE(
+            row_auditorium.AUDITORIUM ||' '||
+            row_auditorium.AUDITORIUM_NAME ||' '||
+            row_auditorium.AUDITORIUM_CAPACITY
+            );
+           fetch c_auditorium into row_auditorium;
+    end loop;
+
+    close c_auditorium;
+EXCEPTION
+    when others
+        then
+            SYS.DBMS_OUTPUT.PUT_LINE('code error: ' || sqlcode || ' msg oracle: ' || sqlerrm);
+END;
+
+--16
+DECLARE
+    cursor curs_aut
+        is select auditorium_type, cursor (select AUDITORIUM from auditorium A where B.AUDITORIUM_TYPE = A.AUDITORIUM_TYPE)
+    from AUDITORIUM_TYPE B;
+    c_auditorium sys_refcursor;
+    aut auditorium_type.auditorium_type%type;
+    txt varchar2(1000);
+    aum auditorium.auditorium%type;
+begin
+        SYS.DBMS_OUTPUT.ENABLE (buffer_size => null);
+    open curs_aut;
+        fetch curs_aut into aut, c_auditorium;
+        while(curs_aut % found)
+        loop
+            txt:=rtrim(aut)||':';
+
+            loop
+                fetch c_auditorium into aum;
+                exit when c_auditorium % notfound;
+                txt := txt||','||rtrim(aum);
+            end loop;
+
+            SYS.DBMS_OUTPUT.PUT_LINE(txt);
+            fetch curs_aut into aut, c_auditorium;
+        end loop;
+    close curs_aut;
+exception
+    when others then
+        SYS.DBMS_OUTPUT.PUT_LINE('code error: ' || sqlcode || ' msg oracle: ' || sqlerrm);
+end;
+
+--17  
+
+--ROLLBACK
+DECLARE
+  cursor cur_au(mini auditorium.auditorium_capacity%type, maxi auditorium.auditorium_capacity%type) is
+    select auditorium, auditorium_capacity  from auditorium  
+    where auditorium_capacity between mini and maxi for update;
+    aum auditorium.auditorium%type;
+    cty auditorium.auditorium_capacity%type;
+BEGIN
+  open cur_au(40, 80);
+  fetch cur_au into aum, cty;
+  while(cur_au%found)
+  loop
+    cty := cty * 0.9;
+    update auditorium
+    set auditorium_capacity = cty
+    where current of cur_au;
+    dbms_output.put_line(aum || ' ' || cty);
+    fetch cur_au into aum, cty;
+  end loop;
+  close cur_au;
+ 
+EXCEPTION
+  when others then
+    dbms_output.put_line('error = '||sqlerrm||', code = '||sqlcode);
+END;
+
+--18
+--ROLLBACK
+DECLARE
+    cursor c_auditorium (min AUDITORIUM.AUDITORIUM % type, max AUDITORIUM.AUDITORIUM % type)
+        is
+            select * from AUDITORIUM
+                where AUDITORIUM_CAPACITY >= min and  AUDITORIUM_CAPACITY <= max
+                    for update ;
+    row_auditorium c_auditorium % rowtype;
+BEGIN
+    SYS.DBMS_OUTPUT.ENABLE (buffer_size => null);
+    SYS.DBMS_OUTPUT.PUT_LINE('delete rows from 0 to 20');
+
+    ---------------------- while --- current of ----------------------
+    open c_auditorium(0, 20);
+    fetch c_auditorium into row_auditorium;
+
+    while (c_auditorium % found)
+    loop
+        delete from AUDITORIUM
+                where current of c_auditorium;
+
+        SYS.DBMS_OUTPUT.PUT_LINE(
+            'ROW DELETED: '||
+            row_auditorium.AUDITORIUM ||' '||
+            row_auditorium.AUDITORIUM_NAME ||' '||
+            row_auditorium.AUDITORIUM_CAPACITY
+            );
+        fetch c_auditorium into row_auditorium;
+    end loop;
+
+EXCEPTION
+    when others
+        then
+            SYS.DBMS_OUTPUT.PUT_LINE('code error: ' || sqlcode || ' msg oracle: ' || sqlerrm);
+END;
+
+--19
+--select * from AUDITORIUM where AUDITORIUM_NAME = '429-4'
+--ROLLBACK
+DECLARE
+    row_id_auditorium rowid;
+BEGIN
+    SYS.DBMS_OUTPUT.ENABLE (buffer_size => null);
+    SYS.DBMS_OUTPUT.PUT_LINE('row id select');
+
+
+    select ROWID into row_id_auditorium from AUDITORIUM where AUDITORIUM_NAME = '429-4';
+
+    update AUDITORIUM set AUDITORIUM_CAPACITY = 99 where ROWID = row_id_auditorium;
+
+   -- delete AUDITORIUM where ROWID = row_id_auditorium;
+  
+    SYS.DBMS_OUTPUT.PUT_LINE(row_id_auditorium);
+
+
+EXCEPTION
+    when others
+        then
+            SYS.DBMS_OUTPUT.PUT_LINE('code error: ' || sqlcode || ' msg oracle: ' || sqlerrm);
+END;
+
+--20
+DECLARE
+    cursor c_teacher is select * from TEACHER;
+    row_teacher c_teacher % rowtype;
+BEGIN
+    SYS.DBMS_OUTPUT.PUT_LINE('Print table TEACHER');
+
+    for row_teacher in c_teacher
+    loop
+        if MOD(c_teacher % rowcount, 3) = 0
+            then
+            SYS.DBMS_OUTPUT.PUT_LINE('------------------------------------------------------------------------');
+        end if;
+    SYS.DBMS_OUTPUT.PUT_LINE(row_teacher.TEACHER_NAME || ' ' ||
+                             row_teacher.TEACHER || ' ' ||
+                             row_teacher.PULPIT
+        );
+    end loop;
+EXCEPTION
+    when others
+        then
+            SYS.DBMS_OUTPUT.PUT_LINE('code error: ' || sqlcode || ' msg oracle: ' || sqlerrm);
+END;

@@ -1,0 +1,55 @@
+create tablespace TS_BVD datafile 'TS_BVD.dbf' size 7M 
+autoextend on next 5M maxsize 20M;
+
+create temporary tablespace TS_BVD_TEMP tempfile 'TS_BVD_TEMP.dbf' size 5M 
+autoextend on next 3M maxsize 30M extent management local;
+
+select * from dictionary;
+
+alter session set "_oracle_script"=true;
+create role RL_BVDCORE;
+
+grant create session, create table, create view, create procedure to RL_BVDCORE;
+grant drop any table, drop any view, drop any procedure to RL_BVDCORE;
+
+select * from dba_sys_privs where grantee='RL_BVDCORE';
+
+create profile PF_BVDCORE limit
+  password_life_time 180
+  sessions_per_user 3
+  failed_login_attempts 7
+  password_lock_time 1
+  password_reuse_time 10
+  password_grace_time default
+  connect_time 180
+  idle_time 30;
+  
+select * from dba_profiles;
+select * from dba_profiles where profile='PF_BVDCORE';
+select * from dba_profiles where profile='DEFAULT';
+
+create user BVDCORE identified by 12345
+default tablespace TS_BVD quota unlimited on TS_BVD
+temporary tablespace TS_BVD_TEMP
+profile PF_BVDCORE
+account unlock
+password expire;
+
+grant RL_BVDCORE to BVDCORE;
+
+create tablespace BVD_QDATA datafile 'BVD_QDATA.dbf' size 10M offline;
+alter tablespace BVD_QDATA online;
+
+alter user BVDCORE  quota 2m on BVD_QDATA;
+
+create table BVD
+(x number(3), d varchAR(20), constraint pk_x primary key(x))
+tablespace BVD_QDATA;
+
+insert into BVD values (345, 'DB');
+insert into BVD values(244, 'nodejs');
+insert into BVD values(242, 'java');
+
+
+
+

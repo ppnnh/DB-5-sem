@@ -1,0 +1,7 @@
+SQL> select * from load2;
+
+         2 DEC        26-DEC-21                                                 
+         5 DEC        29-DEC-21                                                 
+        11 DEC        01-DEC-21                                                 
+        12 DEC        12-DEC-21                                                 
+SQL> spool off;

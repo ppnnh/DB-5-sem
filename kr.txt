@@ -1,0 +1,293 @@
+--1 proccc
+create or replace procedure GetOrders(id_ integer)
+  is
+--     cursor cur_orders is 
+
+--     cursorRow cur_orders%rowtype;
+    num integer;
+     amount_ decimal(9,2);
+ begin 
+--     open cur_orders;
+--     loop
+--     fetch cur_orders into num,amount_;
+--     exit when cur_orders%notfound;
+--     end loop;
+--     close cur_orders;
+ select order_num, avg( amount) into num, amount_ from orders where CUST=id_ ;
+ 
+   dbms_output.put_line(num|| ' '|| amount_);
+     end;
+ 
+  set serveroutput on;
+
+declare
+begin
+GetOrders(2117);
+end;
+
+--2 proc
+create or replace procedure showGoods(userId number) --2108
+as
+cursor corders is  
+SELECT
+p.PRODUCT_ID,
+p."DESCRIPTION",
+o.amount * p.price as "COST"
+FROM orders o inner join
+products p on product_id = product and o.cust = userId
+order by "COST" desc;
+
+cursorRow corders%rowtype;
+begin
+open corders;
+    loop
+      fetch corders into cursorRow;
+      exit when corders%notfound;
+      dbms_output.put_line(cursorRow.product_id||': '||cursorRow.description||': '||cursorRow.cost);
+    end loop;
+    exception
+      when others then
+        dbms_output.put_line(sqlerrm);
+  close corders;
+end;
+
+declare
+begin
+    showGoods(2108);
+end;
+
+--3proc
+create or replace procedure ordDesc(
+  date_from orders.order_date%type,
+  date_to orders.order_date%type)
+as
+  cursor ccusts is select * from orders where order_date between date_from and date_to order by amount desc;
+  ccust ccusts%rowtype;
+begin
+  open ccusts;
+      loop
+        fetch ccusts into ccust;
+        exit when ccusts%notfound;
+        dbms_output.put_line(ccust.cust || ' ' || ccust.amount);
+      end loop;
+  close ccusts;
+  exception
+    when others then dbms_output.put_line(sqlerrm);
+end;
+
+declare
+begin
+  ordDesc(DATE '2007-01-01',DATE '2008-01-01');
+end;
+
+--3func
+create or replace function CountOrders(
+  date_from orders.order_date%type,
+  date_to orders.order_date%type) return number  
+  as
+  cursor corders is select qty from orders where order_date between date_from and date_to;
+  q integer;
+  begin
+  open corders;
+  loop
+  fetch corders into q;
+  exit when corders%notfound;
+  end loop;
+  return q;
+  end;
+  
+declare  
+begin
+  SYS.dbms_output.put_line(CountOrders(DATE '2007-11-17',DATE '2007-12-18'));
+end;
+  
+--4proc
+create or replace PROCEDURE four(
+date_f orders.order_date%type,
+date_to orders.order_date%type)
+as 
+cursor ccosts is select * from orders where order_date between date_f and date_to;
+ ccost ccosts%rowtype;
+ begin 
+ open ccosts;
+ loop
+ fetch ccosts into ccost;
+exit when ccosts%notfound;
+dbms_output.put_line(ccost.cust || '' || ccost.order_date);
+end loop;
+close ccosts;
+exception 
+when others then dbms_output.put_line(sqlerrm);
+end;
+ 
+declare 
+begin 
+four(date'2007-01-01', date '2008-01-01');
+end;
+
+--4func
+CREATE OR REPLACE function four1(
+prod_id products.product_id%type) return number
+as 
+ corders number;
+ begin
+ select count(*) into corders from orders where product=prod_id;
+ return corders;
+ end;
+
+declare 
+begin 
+dbms_output.put_line(four1(114));
+end;
+
+--5proc
+CREATE OR REPLACE PROCEDURE TEN(product_id1 products.product_id%type)
+as 
+  oldPrice products.price%type;
+  begin 
+  select price into oldPrice from products where product_id = product_id1;
+  update products set price = price * 1.1 where product_id = product_id1;
+  dbms_output.put_line('old price: '|| oldPrice ||'; new price:' || oldPrice *1.1);
+  exception
+   when no_data_found then 
+    dbms_output.put_line('NO DATA FOUND: '||sqlerrm);
+  when others then
+    dbms_output.put_line(sqlerrm);
+  end;
+  
+  declare
+  begin 
+  TEN('4100Y');
+  end;
+    
+--5function
+CREATE OR REPLACE function TEN1(
+cust_numm1 customers.cust_num%type,
+order_date1 orders.order_date%type) return number
+as 
+ corders number;
+ begin
+ select count(*) into corders from orders where extract (year from order_date) = extract (year from order_date1);
+ return corders;
+ end;
+ 
+declare
+ begin
+  dbms_output.put_line(TEN1(2108, '2008-02-15'));
+end;
+
+--6procedure
+CREATE OR REPLACE PROCEDURE six(amount1 orders.amount%type)
+as
+  value number;
+  cursor corders is select * from orders where amount <> amount1;
+  cursR corders%rowtype;
+  begin 
+  open corders;
+  loop 
+  fetch corders into cursR;
+  exit when corders%notfound;
+  dbms_output.put_line(cursR.order_num ||' : '||cursR.amount);
+  end loop;
+  exception when others then dbms_output.put_line(sqlerrm);
+  close corders;
+  end;
+  
+  declare 
+  begin 
+  six(24000);
+  end;
+
+--6function
+create or replace function cordersf(name customers.company%type)return number
+as 
+  corders number;
+begin 
+select count(*) into corders from orders orde
+inner join customers cust on orde.cust = cust.cust_num
+where cust.company = name;
+return corders;
+end;
+
+declare
+begin
+ dbms_output.put_line(cordersf('Ace International'));
+ end;
+
+--7proc
+create or replace procedure seven(corders1 orders.amount%type)
+as 
+cursor corders is select * from orders;
+corder corders%rowtype;
+begin
+delete from orders where amount < corders1;
+open corders;
+loop 
+fetch corders into corder;
+exit when corders%notfound;
+dbms_output.put_line(corder.order_num|| ' ' ||corder.amount);
+end loop;
+close corders;
+exception
+when others then 
+dbms_output.put_line(sqlerrm);
+end;
+
+declare
+  begin seven(5000);
+end;
+
+--7func
+create or replace function cproduct(product_name orders.product%type) return number
+ as 
+ countp number;
+ begin 
+ select count(*) into countp from orders where product = product_name;
+ return countp;
+ end;
+ 
+ declare 
+ begin
+ dbms_output.put_line(cproduct('2A44L'));
+ end;
+
+--8proc
+create or replace procedure getProducts(date_ integer)
+as
+cursor currpr is select * from Orders where date_!=extract(Year from order_date);
+currow currpr%rowtype;
+begin
+open currpr;
+loop
+fetch currpr into currow;
+exit when currpr%notfound;
+dbms_output.put_line(currow.product);
+end loop;
+close currpr;
+exception
+when others then
+dbms_output.put_line(sqlerrm);
+end;
+
+declare
+begin
+  getProducts(2008);
+end;
+
+--8func
+CREATE or replace function getProduct(customer orders.cust%type)return number
+as
+   count_pr number;
+   cursor curr is select amount from orders where cust=customer order by amount desc;
+   currrow curr%rowtype;
+begin
+  open curr;  
+  fetch curr into count_pr;
+  close curr;
+  return count_pr;
+end;
+
+declare
+begin
+  dbms_output.put_line(getProduct(2124));
+end;
